@@ -1,0 +1,36 @@
+body{
+    background-image: url(../images/big/bg4.jpg) !important;
+}
+
+html{
+    background: initial !important;
+}
+
+.config-label{
+    margin-bottom: 14px !important;
+}
+
+.config-input{
+    height: 30px !important;
+    float: right;
+    width: 55% !important;
+}
+.red{
+    color: red;
+}
+
+.a-danger{
+    color: #d9534f;
+}
+
+.a-success{
+    color: #5cb85c;
+}
+
+.a-info{
+    color: #5bc0de;
+}
+
+.a-warning{
+    color: #f0ad4e;
+}

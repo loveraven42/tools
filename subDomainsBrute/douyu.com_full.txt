@@ -1,0 +1,12 @@
+mail.douyu.com                
+passport.douyu.com            
+office.douyu.com              
+payroll.douyu.com             
+jump.douyu.com                
+werewolf.douyu.com            
+yuba.douyu.com                
+zhaopin.douyu.com             
+v.douyu.com                   
+uc.douyu.com                  
+api.douyu.com                 
+wan.douyu.com                 

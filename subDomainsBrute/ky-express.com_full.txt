@@ -1,0 +1,9 @@
+mail.ky-express.com           
+open.ky-express.com           
+imap.ky-express.com           
+testapi.ky-express.com        
+openapi.ky-express.com        
+i.ky-express.com              
+img.ky-express.com            
+pop.ky-express.com            
+www.ky-express.com            
